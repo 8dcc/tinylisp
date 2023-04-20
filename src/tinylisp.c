@@ -3,8 +3,9 @@
  * @file    tinylisp.c
  * @author  8dcc, Robert A. van Engelen
  * @brief   Tiny lisp REPL.
- * @details Huge credits to Robert for his initial project and amazing
- * documentation. See README.org for more information.
+ *
+ * Huge credits to Robert for his initial project and amazing documentation. See
+ * README.org for more information.
  */
 
 #include <stdlib.h>
