@@ -1,6 +1,7 @@
 #+title: tinylisp
 #+options: toc:nil
 #+startup: showeverything
+#+export_file_name: ./doc/README.md
 #+author: 8dcc
 
 *Simple Lisp REPL in C.*
@@ -8,9 +9,9 @@
 #+TOC: headlines 2
 
 * Description
-This project is heavily inspired by [[https://github.com/Robert-van-Engelen/tinylisp][Robert-van-Engelen/tinylisp]] and [[https://raw.githubusercontent.com/Robert-van-Engelen/tinylisp/main/tinylisp.pdf][his amazing
-article]]. Please check them out if you are interested in how this project
-was made.
+This project is heavily inspired by [[https://github.com/Robert-van-Engelen/tinylisp][Robert-van-Engelen/tinylisp]] and
+[[https://raw.githubusercontent.com/Robert-van-Engelen/tinylisp/main/tinylisp.pdf][his amazing article]]. Please check them out if you are interested in how this
+project was made.
 
 * Building
 
