@@ -241,22 +241,35 @@ L f_div(L t, L e) {
     return num(n);
 }
 
-/** @todo Make conditionals more visual */
 L f_int(L t, L e) {
     L n = car(evlis(t, e));
-    return n < 1e16 && n > -1e16 ? (long long)n : n;
+    if (n < 1e16 && n > -1e16)
+        return (long long)n;
+    else
+        return n;
 }
 
 L f_lt(L t, L e) {
-    return t = evlis(t, e), car(t) - car(cdr(t)) < 0 ? tru : nil;
+    t = evlis(t, e);
+    if (car(t) - car(cdr(t)) < 0)
+        return tru;
+    else
+        return nil;
 }
 
 L f_eq(L t, L e) {
-    return t = evlis(t, e), equ(car(t), car(cdr(t))) ? tru : nil;
+    t = evlis(t, e);
+    if (equ(car(t), car(cdr(t))))
+        return tru;
+    else
+        return nil;
 }
 
 L f_not(L t, L e) {
-    return not(car(evlis(t, e))) ? tru : nil;
+    if (not(car(evlis(t, e))))
+        return tru;
+    else
+        return nil;
 }
 
 L f_or(L t, L e) {
@@ -311,7 +324,7 @@ struct {
 } prim[] = { { "eval", f_eval },     { "quote", f_quote },   { "cons", f_cons },
              { "car", f_car },       { "cdr", f_cdr },       { "+", f_add },
              { "-", f_sub },         { "*", f_mul },         { "/", f_div },
-             { "int", f_int },       { "<", f_lt },          { "eq?", f_eq },
+             { "int", f_int },       { "<", f_lt },          { "equ", f_eq },
              { "or", f_or },         { "and", f_and },       { "not", f_not },
              { "cond", f_cond },     { "if", f_if },         { "let*", f_leta },
              { "lambda", f_lambda }, { "define", f_define }, { 0 } };
@@ -389,9 +402,9 @@ char scan() {
     if (seeing('(') || seeing(')') || seeing('\'')) {
         buf[i++] = get();
     } else {
-        do
+        do {
             buf[i++] = get();
-        while (i < 39 && !seeing('(') && !seeing(')') && !seeing(' '));
+        } while (i < 39 && !seeing('(') && !seeing(')') && !seeing(' '));
     }
 
     buf[i] = 0;
@@ -430,7 +443,11 @@ L quote() {
 L atomic() {
     L n;
     I i;
-    return (sscanf(buf, "%lg%n", &n, &i) > 0 && !buf[i]) ? n : atom(buf);
+
+    if (sscanf(buf, "%lg%n", &n, &i) > 0 && !buf[i])
+        return n;
+    else
+        return atom(buf);
 }
 
 /* return a parsed Lisp expression */
