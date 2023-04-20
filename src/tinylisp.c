@@ -1,3 +1,4 @@
+
 /**
  * @file    tinylisp.c
  * @author  8dcc, Robert A. van Engelen
@@ -139,7 +140,6 @@ I let(L x) {
 /* return a new list of evaluated Lisp expressions t in environment e */
 L eval(L, L);
 L evlis(L t, L e) {
-    /** @todo Switch */
     if (T(t) == CONS)
         return cons(eval(car(t), e), evlis(cdr(t), e));
     else if (T(t) == ATOM)
@@ -366,34 +366,72 @@ L eval(L x, L e) {
         return x;
 }
 
-/* tokenization buffer and the next character that we are looking at */
-char buf[40], see = ' ';
+/*--------------------------------- PARSING ----------------------------------*/
 
-/* advance to the next character */
-void look() {
+static void look();
+static I seeing(char c);
+static char get();
+static char scan();
+static L read();
+static L list();
+static L quote();
+static L atomic();
+static L parse();
+
+/**
+ * @var buf
+ * @brief Tokenization buffer
+ */
+static char buf[40];
+
+/**
+ * @var see
+ * @brief The next character that we are looking at (last read by look())
+ */
+static char see = ' ';
+
+/**
+ * @brief Stores the current character in `see` and advances to the next
+ * character
+ * @details Checks for EOF
+ */
+static void look() {
     int c = getchar();
     see   = c;
     if (c == EOF)
         exit(0);
 }
 
-/* return nonzero if we are looking at character c, ' ' means any white space */
-I seeing(char c) {
+/**
+ * @brief Return non-zero if we are looking at character c
+ * @details Character `' '` will be passed as parameter in case of *any*
+ * whitespace
+ * @param[in] c Character to check
+ * @return Non-zero if we are seeing that character
+ */
+static I seeing(char c) {
     if (c == ' ')
         return see > 0 && see <= c;
     else
         return see == c;
 }
 
-/* return the look ahead character from standard input, advance to the next */
-char get() {
+/**
+ * @brief Return the look ahead character from standard input, advances to the
+ * next
+ * @return Current look ahead character
+ */
+static char get() {
     char c = see;
     look();
     return c;
 }
 
-/* tokenize into buf[], return first character of buf[] */
-char scan() {
+/**
+ * @brief Tokenizes into buf[]
+ * @return First character of buf[]
+ */
+static char scan() {
     I i = 0;
 
     while (seeing(' '))
@@ -411,15 +449,22 @@ char scan() {
     return *buf;
 }
 
-/* return the Lisp expression read from standard input */
-L parse();
-L read() {
+/**
+ * @brief Scans and parses an expression from standard input
+ * @details Calls scan() and parse()
+ * @return The Lisp expression read from standard input
+ */
+static L read() {
     scan();
     return parse();
 }
 
-/* return a parsed Lisp list */
-L list() {
+/**
+ * @brief Parse a Lisp list
+ * @details Uses input buffer `buf`
+ * @return Parsed Lisp list
+ */
+static L list() {
     L x;
     if (scan() == ')')
         return nil;
@@ -434,13 +479,21 @@ L list() {
     return cons(x, list());
 }
 
-/* return a parsed Lisp expression x quoted as (quote x) */
-L quote() {
+/**
+ * @brief Parse a Lisp expression quoted as `(quote x)`
+ * @details Uses input buffer `buf`
+ * @return Parsed quoted expression
+ */
+static L quote() {
     return cons(atom("quote"), cons(read(), nil));
 }
 
-/* return a parsed atomic Lisp expression (a number or an atom) */
-L atomic() {
+/**
+ * @brief Parse ab atomic Lisp expression
+ * @details Uses input buffer `buf`. An atomic expression is a number or an atom
+ * @return Parsed atomic Lisp expression
+ */
+static L atomic() {
     L n;
     I i;
 
@@ -450,9 +503,12 @@ L atomic() {
         return atom(buf);
 }
 
-/* return a parsed Lisp expression */
-L parse() {
-    /** @todo Switch */
+/**
+ * @brief Parse a Lisp expression
+ * @details Uses input buffer `buf`
+ * @return Parsed Lisp expression
+ */
+static L parse() {
     if (*buf == '(')
         return list();
     else if (*buf == '\'')
@@ -461,9 +517,37 @@ L parse() {
         return atomic();
 }
 
-/* display a Lisp list t */
-void print(L);
-void printlist(L t) {
+/*--------------------------------- PRINTING ---------------------------------*/
+
+static void print(L x);
+static void printlist(L t);
+
+/**
+ * @brief Display a Lisp expression
+ * @param[in] x Expression to print
+ */
+static void print(L x) {
+    /* NOTE: We don't use switch here because type tags are not constant at
+     * compile time */
+    if (T(x) == NIL)
+        printf("()");
+    else if (T(x) == ATOM)
+        printf("%s", A + ord(x));
+    else if (T(x) == PRIM)
+        printf("<%s>", prim[ord(x)].s);
+    else if (T(x) == CONS)
+        printlist(x);
+    else if (T(x) == CLOS)
+        printf("{%u}", ord(x));
+    else
+        printf("%.10lg", x);
+}
+
+/**
+ * @brief Display a Lisp list
+ * @param[in] t List to be printed
+ */
+static void printlist(L t) {
     for (putchar('(');; putchar(' ')) {
         print(car(t));
         t = cdr(t);
@@ -480,27 +564,17 @@ void printlist(L t) {
     putchar(')');
 }
 
-/* display a Lisp expression x */
-void print(L x) {
-    /** @todo Switch */
-    if (T(x) == NIL)
-        printf("()");
-    else if (T(x) == ATOM)
-        printf("%s", A + ord(x));
-    else if (T(x) == PRIM)
-        printf("<%s>", prim[ord(x)].s);
-    else if (T(x) == CONS)
-        printlist(x);
-    else if (T(x) == CLOS)
-        printf("{%u}", ord(x));
-    else
-        printf("%.10lg", x);
-}
+/*--------------------------------- GARBAGE ----------------------------------*/
 
-/* garbage collection removes temporary cells, keeps global environment */
-void gc() {
+/**
+ * @brief Garbage collection
+ * @details Removes temporary cells, keeps global environment
+ */
+static void gc() {
     sp = ord(env);
 }
+
+/*----------------------------------- MAIN -----------------------------------*/
 
 /**
  * @brief Entry point of the REPL
