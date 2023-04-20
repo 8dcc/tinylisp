@@ -1,23 +1,22 @@
-#+title: Title
+#+title: tinylisp
 #+options: toc:nil
 #+startup: showeverything
 #+author: 8dcc
 
-*Short description.*
+*Simple Lisp REPL in C.*
 
 #+TOC: headlines 2
 
 * Description
-Long description.
+This project is heavily inspired by [[https://github.com/Robert-van-Engelen/tinylisp][Robert-van-Engelen/tinylisp]] and [[https://raw.githubusercontent.com/Robert-van-Engelen/tinylisp/main/tinylisp.pdf][his amazing
+article]]. Please check them out if you are interested in how this project
+was made.
 
 * Building
-#+begin_comment
-TODO: Change project-name
-#+end_comment
 
 #+begin_src console
-$ git clone https://github.com/8dcc/project-name
-$ cd project-name
+$ git clone https://github.com/8dcc/tinylisp
+$ cd tinylisp
 $ make
 ...
 #+end_src
@@ -25,6 +24,6 @@ $ make
 * Usage
 
 #+begin_src console
-$ ./project-name.out --help
+$ ./tinylisp.out --help
 ...
 #+end_src
