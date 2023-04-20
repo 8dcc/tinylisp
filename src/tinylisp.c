@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <string.h>
 
+/** @todo Rest of doxygen comments and sections */
+
 /* we only need two types to implement a Lisp interpreter:
         I    unsigned integer (either 16 bit, 32 bit or 64 bit unsigned)
         L    Lisp expression (double with NaN boxing)
@@ -318,6 +320,7 @@ L f_define(L t, L e) {
     return car(t);
 }
 
+/** @todo Name struct? */
 /* table of Lisp primitives, each has a name s and function pointer f */
 struct {
     const char* s;
