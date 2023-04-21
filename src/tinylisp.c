@@ -7,9 +7,12 @@
  * Huge credits to Robert for his initial project and amazing documentation. See
  * README.org for more information.
  *
+ * @todo Replace types with stdint's
  * @todo Check [in] from args
+ * @todo Add (quit) command
  */
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -60,26 +63,59 @@ L nil, tru, err, env;
 /* NaN-boxing specific functions:
    box(t,i): returns a new NaN-boxed double with tag t and ordinal i
    ord(x):   returns the ordinal of the NaN-boxed double x
-   num(n):   convert or check number n (does nothing, e.g. could check for NaN)
+   num(n):   convert or check number n ()
    equ(x,y): returns nonzero if x equals y */
+
+/*-------------------------------- NaN BOXING --------------------------------*/
+
+/**
+ * @brief Tag and NaN-box ordinal content `i` with the specified tag `t`
+ * @details Tag `t` is supposed to be ATOM, PRIM, CONS, CLOS or NIL. For more
+ * information about NaN boxing, see:
+ * @param[in] t Tag
+ * @param[in] i Content
+ * @return Tagged NaN-boxed double
+ */
 L box(I t, I i) {
     L x;
     *(unsigned long long*)&x = (unsigned long long)t << 48 | i;
     return x;
 }
 
+/**
+ * @brief Unbox the unsigned integer (ordinal) of a tagged float
+ * @details Tagged floats are created with box(). The return value is narrowed
+ * to 32 bit unsigned integer to remove the tag.
+ * @param[in] x NaN-boxed double (tagged ordinal)
+ * @return Unboxed ordinal value from NaN box
+ *
+ * @todo stdint type
+ */
 I ord(L x) {
-    return *(unsigned long long*)&x; /* the return value is narrowed to 32 bit
-                                        unsigned integer to remove the tag */
+    return *(unsigned long long*)&x;
 }
 
+/**
+ * @brief Returns literal NaN box
+ * @details Does nothing, could check for NaN
+ * @param[in] n NaN-boxed double
+ * @return Same as argument
+ */
 L num(L n) {
     return n;
 }
 
+/**
+ * @brief Compares 2 NaN-boxed values to see if they match
+ * @param[in] x NaN-boxed value 1
+ * @param[in] y NaN-boxed value 2
+ * @return Non-zero if they are equal, zero otherwise
+ */
 I equ(L x, L y) {
     return *(unsigned long long*)&x == *(unsigned long long*)&y;
 }
+
+/*-------------------------------- TODO --------------------------------*/
 
 /* interning of atom names (Lisp symbols), returns a unique NaN-boxed ATOM */
 L atom(const char* s) {
@@ -172,7 +208,7 @@ L evlis(L t, L e) {
  *  (div n1 n2 ... nk)  n1 divided by the product of n2 to nk
  *  (int n)             integer part of n
  *  (< n1 n2)           #t if n1<n2, otherwise ()
- *  (eq? x y)           #t if x equals y, otherwise ()
+ *  (equ x y)           #t if x equals y, otherwise ()
  *  (not x)             #t if x is (), otherwise ()
  *  (or x1 x2 ... xk)   first x that is not (), otherwise ()
  *  (and x1 x2 ... xk)  last x if all x are not (), otherwise ()
