@@ -6,6 +6,8 @@
  *
  * Huge credits to Robert for his initial project and amazing documentation. See
  * README.org for more information.
+ *
+ * @todo Check [in] from args
  */
 
 #include <stdlib.h>
@@ -151,56 +153,65 @@ L evlis(L t, L e) {
         return nil;
 }
 
-/* Lisp primitives:
-   (eval x)            return evaluated x (such as when x was quoted)
-   (quote x)           special form, returns x unevaluated "as is"
-   (cons x y)          construct pair (x . y)
-   (car p)             car of pair p
-   (cdr p)             cdr of pair p
-   (add n1 n2 ... nk)  sum of n1 to nk
-   (sub n1 n2 ... nk)  n1 minus sum of n2 to nk
-   (mul n1 n2 ... nk)  product of n1 to nk
-   (div n1 n2 ... nk)  n1 divided by the product of n2 to nk
-   (int n)             integer part of n
-   (< n1 n2)           #t if n1<n2, otherwise ()
-   (eq? x y)           #t if x equals y, otherwise ()
-   (not x)             #t if x is (), otherwise ()
-   (or x1 x2 ... xk)   first x that is not (), otherwise ()
-   (and x1 x2 ... xk)  last x if all x are not (), otherwise ()
-   (cond (x1 y1)
-         (x2 y2)
-         ...
-         (xk yk))      the first yi for which xi evaluates to non-()
-   (if x y z)          if x is non-() then y else z
-   (let* (v1 x1)
-         (v2 x2)
-         ...
-         y)            sequentially binds each variable v1 to xi to evaluate y
-   (lambda v x)        construct a closure
-   (define v x)        define a named value globally */
-L f_eval(L t, L e) {
+/*----------------------------- LISP PRIMITIVES ------------------------------*/
+
+/**
+ * @name Lisp primitives
+ * This functions will be used for the Lisp primitives.
+ * @{ */
+
+/*
+ *  (eval x)            return evaluated x (such as when x was quoted)
+ *  (quote x)           special form, returns x unevaluated "as is"
+ *  (cons x y)          construct pair (x . y)
+ *  (car p)             car of pair p
+ *  (cdr p)             cdr of pair p
+ *  (add n1 n2 ... nk)  sum of n1 to nk
+ *  (sub n1 n2 ... nk)  n1 minus sum of n2 to nk
+ *  (mul n1 n2 ... nk)  product of n1 to nk
+ *  (div n1 n2 ... nk)  n1 divided by the product of n2 to nk
+ *  (int n)             integer part of n
+ *  (< n1 n2)           #t if n1<n2, otherwise ()
+ *  (eq? x y)           #t if x equals y, otherwise ()
+ *  (not x)             #t if x is (), otherwise ()
+ *  (or x1 x2 ... xk)   first x that is not (), otherwise ()
+ *  (and x1 x2 ... xk)  last x if all x are not (), otherwise ()
+ *  (cond (x1 y1)
+ *        (x2 y2)
+ *        ...
+ *        (xk yk))      the first yi for which xi evaluates to non-()
+ *  (if x y z)          if x is non-() then y else z
+ *  (let* (v1 x1)
+ *        (v2 x2)
+ *        ...
+ *        y)            sequentially binds each variable v1 to xi to evaluate y
+ *  (lambda v x)        construct a closure
+ *  (define v x)        define a named value globally
+ */
+
+static L f_eval(L t, L e) {
     return eval(car(evlis(t, e)), e);
 }
 
-L f_quote(L t, L _) {
+static L f_quote(L t, L _) {
     (void)_;
     return car(t);
 }
 
-L f_cons(L t, L e) {
+static L f_cons(L t, L e) {
     t = evlis(t, e);
     return cons(car(t), car(cdr(t)));
 }
 
-L f_car(L t, L e) {
+static L f_car(L t, L e) {
     return car(car(evlis(t, e)));
 }
 
-L f_cdr(L t, L e) {
+static L f_cdr(L t, L e) {
     return cdr(car(evlis(t, e)));
 }
 
-L f_add(L t, L e) {
+static L f_add(L t, L e) {
     L n;
     t = evlis(t, e);
     n = car(t);
@@ -211,7 +222,7 @@ L f_add(L t, L e) {
     return num(n);
 }
 
-L f_sub(L t, L e) {
+static L f_sub(L t, L e) {
     L n;
     t = evlis(t, e);
     n = car(t);
@@ -222,7 +233,7 @@ L f_sub(L t, L e) {
     return num(n);
 }
 
-L f_mul(L t, L e) {
+static L f_mul(L t, L e) {
     L n;
     t = evlis(t, e);
     n = car(t);
@@ -233,7 +244,7 @@ L f_mul(L t, L e) {
     return num(n);
 }
 
-L f_div(L t, L e) {
+static L f_div(L t, L e) {
     L n;
     t = evlis(t, e);
     n = car(t);
@@ -244,7 +255,7 @@ L f_div(L t, L e) {
     return num(n);
 }
 
-L f_int(L t, L e) {
+static L f_int(L t, L e) {
     L n = car(evlis(t, e));
     if (n < 1e16 && n > -1e16)
         return (long long)n;
@@ -252,7 +263,7 @@ L f_int(L t, L e) {
         return n;
 }
 
-L f_lt(L t, L e) {
+static L f_lt(L t, L e) {
     t = evlis(t, e);
     if (car(t) - car(cdr(t)) < 0)
         return tru;
@@ -260,7 +271,7 @@ L f_lt(L t, L e) {
         return nil;
 }
 
-L f_eq(L t, L e) {
+static L f_eq(L t, L e) {
     t = evlis(t, e);
     if (equ(car(t), car(cdr(t))))
         return tru;
@@ -268,14 +279,14 @@ L f_eq(L t, L e) {
         return nil;
 }
 
-L f_not(L t, L e) {
+static L f_not(L t, L e) {
     if (not(car(evlis(t, e))))
         return tru;
     else
         return nil;
 }
 
-L f_or(L t, L e) {
+static L f_or(L t, L e) {
     L x = nil;
 
     while (T(t) != NIL && not(x = eval(car(t), e)))
@@ -284,7 +295,7 @@ L f_or(L t, L e) {
     return x;
 }
 
-L f_and(L t, L e) {
+static L f_and(L t, L e) {
     L x = nil;
 
     while (T(t) != NIL && !not(x = eval(car(t), e)))
@@ -293,38 +304,42 @@ L f_and(L t, L e) {
     return x;
 }
 
-L f_cond(L t, L e) {
+static L f_cond(L t, L e) {
     while (T(t) != NIL && not(eval(car(car(t)), e)))
         t = cdr(t);
 
     return eval(car(cdr(car(t))), e);
 }
 
-L f_if(L t, L e) {
+static L f_if(L t, L e) {
     return eval(car(cdr(not(eval(car(t), e)) ? cdr(t) : t)), e);
 }
 
-L f_leta(L t, L e) {
+static L f_leta(L t, L e) {
     for (; let(t); t = cdr(t))
         e = pair(car(car(t)), eval(car(cdr(car(t))), e), e);
 
     return eval(car(t), e);
 }
 
-L f_lambda(L t, L e) {
+static L f_lambda(L t, L e) {
     return closure(car(t), car(cdr(t)), e);
 }
 
-L f_define(L t, L e) {
+static L f_define(L t, L e) {
     env = pair(car(t), eval(car(cdr(t)), e), env);
     return car(t);
 }
+/** @} */
 
-/** @todo Name struct? */
-/* table of Lisp primitives, each has a name s and function pointer f */
+/**
+ * @struct prim
+ * @brief Table of Lisp primitives
+ * @details Asociates a name `s` to a function pointer `f`
+ */
 struct {
-    const char* s;
-    L (*f)(L, L);
+    const char* s; /**< @brief Primitive name */
+    L (*f)(L, L);  /**< @brief Pointer to primitive function declared above */
 } prim[] = { { "eval", f_eval },     { "quote", f_quote },   { "cons", f_cons },
              { "car", f_car },       { "cdr", f_cdr },       { "+", f_add },
              { "-", f_sub },         { "*", f_mul },         { "/", f_div },
@@ -333,7 +348,17 @@ struct {
              { "cond", f_cond },     { "if", f_if },         { "let*", f_leta },
              { "lambda", f_lambda }, { "define", f_define }, { 0 } };
 
-/* create environment by extending e with variables v bound to values t */
+/*------------------------------- ENVIROMENTS --------------------------------*/
+
+/**
+ * @brief Create environment by extending `e` with variables `v` bound to values
+ * `t`
+ * @details Description
+ * @param[in] v Variables for the enviroment
+ * @param[in] t Values for the variables
+ * @param[in] e Enviroment
+ * @return Enviroment with `t` binded to `v`
+ */
 L bind(L v, L t, L e) {
     if (T(v) == NIL)
         return e;
@@ -343,13 +368,26 @@ L bind(L v, L t, L e) {
         return pair(v, t, e);
 }
 
-/* apply closure f to arguments t in environemt e */
+/**
+ * @brief Apply closure `f` to arguments `t` in environemt `e`
+ * @details Called by apply() if the expression is a primitive
+ * @param[in] f Closure to apply
+ * @param[in] t Arguments for closure `f`
+ * @param[in] e Enviroment
+ * @return Applied closure
+ */
 L reduce(L f, L t, L e) {
     return eval(cdr(car(f)),
                 bind(car(car(f)), evlis(t, e), not(cdr(f)) ? env : cdr(f)));
 }
 
-/* apply closure or primitive f to arguments t in environment e, or return ERR
+/**
+ * @brief Apply closure or primitive `f` to arguments `t` in environment `e`
+ * @details Will call reduce() if closure
+ * @param[in] f Clousure or primitive
+ * @param[in] t Arguments
+ * @param[in] e Enviroment
+ * @return Applied expression if closure or primitive, `err` otherwise
  */
 L apply(L f, L t, L e) {
     if (T(f) == PRIM)
@@ -360,7 +398,12 @@ L apply(L f, L t, L e) {
         return err;
 }
 
-/* evaluate x and return its value in environment e */
+/**
+ * @brief Evaluate `x` and return its value in environment `e`
+ * @param[in] x Expression to evaluate
+ * @param[in] e Enviroment of the expression
+ * @return Evaluated expression
+ */
 L eval(L x, L e) {
     if (T(x) == ATOM)
         return assoc(x, e);
@@ -395,7 +438,7 @@ static char buf[40];
 static char see = ' ';
 
 /**
- * @brief Stores the current character in `see` and advances to the next
+ * @brief Store the current character in `see` and advances to the next
  * character
  * @details Checks for EOF
  */
@@ -407,7 +450,7 @@ static void look() {
 }
 
 /**
- * @brief Return non-zero if we are looking at character c
+ * @brief Check if we are looking at character c
  * @details Character `' '` will be passed as parameter in case of *any*
  * whitespace
  * @param[in] c Character to check
@@ -432,7 +475,7 @@ static char get() {
 }
 
 /**
- * @brief Tokenizes into buf[]
+ * @brief Tokenize input into buf[]
  * @return First character of buf[]
  */
 static char scan() {
@@ -454,7 +497,7 @@ static char scan() {
 }
 
 /**
- * @brief Scans and parses an expression from standard input
+ * @brief Scan and parse an expression from standard input
  * @details Calls scan() and parse()
  * @return The Lisp expression read from standard input
  */
