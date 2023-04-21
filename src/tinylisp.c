@@ -24,7 +24,7 @@
  * @brief Type used for unsigned integers
  * @details Either 16 bit, 32 bit or 64 bit unsigned. Variables and function
  * parameters are named as follows:
-
+ *
  *  Variable | Description
  * ----------|--------------------------------------------------------------
  * `i`       | Any unsigned integer, e.g. a NaN-boxed ordinal value
@@ -80,15 +80,16 @@ I ATOM = 0x7ff8, PRIM = 0x7ff9, CONS = 0x7ffa, CLOS = 0x7ffb, NIL = 0x7ffc;
 /* cell[N] array of Lisp expressions, shared by the stack and atom heap */
 L cell[N];
 
-/* Lisp constant expressions () (nil), #t, ERR, and the global environment env
- */
+/**
+ * @name Lisp constant expressions
+ * List:
+ * - `nil` (empty list)
+ * - `t` (explicit truth)
+ * - `err` (returned to indicate errors)
+ * - `env` (global enviroment)
+ * @{ */
 L nil, tru, err, env;
-
-/* NaN-boxing specific functions:
-   box(t,i): returns a new NaN-boxed double with tag t and ordinal i
-   ord(x):   returns the ordinal of the NaN-boxed double x
-   num(n):   convert or check number n ()
-   equ(x,y): returns nonzero if x equals y */
+/** @} */
 
 /*-------------------------------- NaN BOXING --------------------------------*/
 
@@ -707,7 +708,7 @@ int main() {
 
     nil = box(NIL, 0);
     err = atom("ERR");
-    tru = atom("#t");
+    tru = atom("t");
     env = pair(tru, tru, nil);
 
     for (i = 0; prim[i].s; ++i)
