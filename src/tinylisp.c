@@ -19,30 +19,54 @@
 
 /** @todo Rest of doxygen comments and sections */
 
-/* we only need two types to implement a Lisp interpreter:
-        I    unsigned integer (either 16 bit, 32 bit or 64 bit unsigned)
-        L    Lisp expression (double with NaN boxing)
-   I variables and function parameters are named as follows:
-        i    any unsigned integer, e.g. a NaN-boxed ordinal value
-        t    a NaN-boxing tag
-   L variables and function parameters are named as follows:
-        x,y  any Lisp expression
-        n    number
-        t    list
-        f    function or Lisp primitive
-        p    pair, a cons of two Lisp expressions
-        e,d  environment, a list of pairs, e.g. created with (define v x)
-        v    the name of a variable (an atom) or a list of variables */
+/**
+ * @def I
+ * @brief Type used for unsigned integers
+ * @details Either 16 bit, 32 bit or 64 bit unsigned. Variables and function
+ * parameters are named as follows:
+
+ *  Variable | Description
+ * ----------|--------------------------------------------------------------
+ * `i`       | Any unsigned integer, e.g. a NaN-boxed ordinal value
+ * `t`       | A NaN-boxing tag
+ */
 #define I unsigned
+
+/**
+ * @def L
+ * @brief Lisp expression. Will be stored in a double using NaN boxing
+ * @details See bellow comments or Robert's article for more information.
+ * Variables and function parameters are named as follows:
+ *
+ *  Variable | Description
+ * ----------|--------------------------------------------------------------
+ * `x`,`y`   | any Lisp expression
+ * `n`       | number
+ * `t`       | list
+ * `f`       | function or Lisp primitive
+ * `p`       | pair, a cons of two Lisp expressions
+ * `e`,`d`   | environment, a list of pairs, e.g. created with (define v x)
+ * `v`       | the name of a variable (an atom) or a list of variables
+ */
 #define L double
 
-/* T(x) returns the tag bits of a NaN-boxed Lisp expression x */
+/**
+ * @def T
+ * @brief Returns the *tag* bits of a NaN-boxed Lisp expression `x`
+ */
 #define T(x) *(unsigned long long*)&x >> 48
 
-/* address of the atom heap is at the bottom of the cell stack */
+/**
+ * @def A
+ * @brief Address of the atom heap is at the bottom of the cell stack
+ */
 #define A (char*)cell
 
-/* number of cells for the shared stack and atom heap, increase N as desired */
+/**
+ * @def N
+ * @brief Number of cells for the shared stack and atom heap
+ * @todo Allocate in main and overwrite with arguments
+ */
 #define N 1024
 
 /* hp: heap pointer, A+hp with hp=0 points to the first atom string in cell[]
@@ -72,6 +96,7 @@ L nil, tru, err, env;
  * @brief Tag and NaN-box ordinal content `i` with the specified tag `t`
  * @details Tag `t` is supposed to be ATOM, PRIM, CONS, CLOS or NIL. For more
  * information about NaN boxing, see:
+ *   https://softwareengineering.stackexchange.com/questions/185406/what-is-the-purpose-of-nan-boxing#185431
  * @param[in] t Tag
  * @param[in] i Content
  * @return Tagged NaN-boxed double
@@ -107,8 +132,10 @@ L num(L n) {
 
 /**
  * @brief Compares 2 NaN-boxed values to see if they match
- * @param[in] x NaN-boxed value 1
- * @param[in] y NaN-boxed value 2
+ * @details Because equality comparisons `==` with NaN values always produce
+ * false, we just need to compare the 64 bits of the values for equality
+ * @param[in] x NaN-boxed expression 1
+ * @param[in] y NaN-boxed expression 2
  * @return Non-zero if they are equal, zero otherwise
  */
 I equ(L x, L y) {
@@ -168,7 +195,13 @@ L assoc(L v, L e) {
     return T(e) == CONS ? cdr(car(e)) : err;
 }
 
-/* not(x) is nonzero if x is the Lisp () empty list */
+/**
+ * @brief Check if the argument is an empty list (`nil`)
+ * @details Keep in mind that empty lists in Lisp are considered *false* and any
+ * other values are considered *true*
+ * @param[in] x Expression to check
+ * @return Non-zero if NILL, zero if non-nil
+ */
 I not(L x) {
     return T(x) == NIL;
 }
@@ -391,7 +424,7 @@ struct {
  * `t`
  * @details Description
  * @param[in] v Variables for the enviroment
- * @param[in] t Values for the variables
+ * @param[in] t List of values for the variables
  * @param[in] e Enviroment
  * @return Enviroment with `t` binded to `v`
  */
@@ -408,7 +441,7 @@ L bind(L v, L t, L e) {
  * @brief Apply closure `f` to arguments `t` in environemt `e`
  * @details Called by apply() if the expression is a primitive
  * @param[in] f Closure to apply
- * @param[in] t Arguments for closure `f`
+ * @param[in] t List of arguments for closure `f`
  * @param[in] e Enviroment
  * @return Applied closure
  */
@@ -421,7 +454,7 @@ L reduce(L f, L t, L e) {
  * @brief Apply closure or primitive `f` to arguments `t` in environment `e`
  * @details Will call reduce() if closure
  * @param[in] f Clousure or primitive
- * @param[in] t Arguments
+ * @param[in] t List of arguments
  * @param[in] e Enviroment
  * @return Applied expression if closure or primitive, `err` otherwise
  */
@@ -661,6 +694,9 @@ static void gc() {
 
 /**
  * @brief Entry point of the REPL
+ * @details We initialize the predefined atoms (`nil`, `err` and `tru`) and the
+ * enviroment (`env`). We add the primitives to the enviroment and start the
+ * main loop.
  * @param argc Number of arguments
  * @param argv Vector of string arguments
  * @return Exit code
