@@ -236,6 +236,7 @@ static L closure(L v, L x, L e) {
 }
 
 /* look up a symbol in an environment, return its value or ERR if not found */
+/** @todo Use atom name in err_msg() */
 static L assoc(L v, L e) {
     while (T(e) == CONS && !equ(v, car(car(e))))
         e = cdr(e);
