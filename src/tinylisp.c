@@ -7,6 +7,7 @@
  * Huge credits to Robert for his initial project and amazing documentation. See
  * README.org for more information.
  *
+ * @todo Add comment support (; to eol)
  * @todo Check [in] from args
  * @todo Add (quit) command
  */
@@ -16,7 +17,25 @@
 #include <stdio.h>
 #include <string.h>
 
-/** @todo Rest of doxygen comments and sections */
+/**
+ * @def VERBOSE_ERRORS
+ * @brief If defined, the program will print a brief description of the errors.
+ */
+#define VERBOSE_ERRORS
+
+/*------------------------------ MACROS/GLOBALS ------------------------------*/
+
+#ifdef VERBOSE_ERRORS
+#define err_msg(...)                    \
+    {                                   \
+        printf("[err] %s: ", __func__); \
+        printf(__VA_ARGS__);            \
+        return err;                     \
+    }
+#else
+#define err_msg(...) \
+    { return err; }
+#endif
 
 /**
  * @def I
@@ -192,12 +211,18 @@ static L cons(L x, L y) {
 
 /* return the car of a pair or ERR if not a pair */
 static L car(L p) {
-    return (T(p) & ~(CONS ^ CLOS)) == CONS ? cell[ord(p) + 1] : err;
+    if ((T(p) & ~(CONS ^ CLOS)) == CONS)
+        return cell[ord(p) + 1];
+    else
+        err_msg("not a pair\n");
 }
 
 /* return the cdr of a pair or ERR if not a pair */
 static L cdr(L p) {
-    return (T(p) & ~(CONS ^ CLOS)) == CONS ? cell[ord(p)] : err;
+    if ((T(p) & ~(CONS ^ CLOS)) == CONS)
+        return cell[ord(p)];
+    else
+        err_msg("not a pair\n");
 }
 
 /* construct a pair to add to environment e, returns the list ((v . x) . e) */
@@ -214,7 +239,11 @@ static L closure(L v, L x, L e) {
 static L assoc(L v, L e) {
     while (T(e) == CONS && !equ(v, car(car(e))))
         e = cdr(e);
-    return T(e) == CONS ? cdr(car(e)) : err;
+
+    if (T(e) == CONS)
+        return cdr(car(e));
+    else
+        err_msg("symbol %p not found\n", (void*)(long)ord(v));
 }
 
 /**
@@ -486,7 +515,7 @@ static L apply(L f, L t, L e) {
     else if (T(f) == CLOS)
         return reduce(f, t, e);
     else
-        return err;
+        err_msg("not a valid clousure or primitive\n");
 }
 
 /**
