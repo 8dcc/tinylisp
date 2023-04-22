@@ -576,7 +576,7 @@ static void look() {
  * @param[in] c Character to check
  * @return Non-zero if we are seeing that character
  */
-static I seeing(char c) {
+static inline I seeing(char c) {
     if (c == ' ')
         return see > 0 && see <= c;
     else
