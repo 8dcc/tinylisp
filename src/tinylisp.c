@@ -26,9 +26,9 @@
  * parameters are named as follows:
  *
  *  Variable | Description
- * ----------|--------------------------------------------------------------
+ * ----------|------------------------------------------------------
  * `i`       | Any unsigned integer, e.g. a NaN-boxed ordinal value
- * `t`       | A NaN-boxing tag
+ * `t`       | A NaN boxing tag
  */
 #define I unsigned
 
@@ -72,13 +72,18 @@
 /* hp: heap pointer, A+hp with hp=0 points to the first atom string in cell[]
    sp: stack pointer, the stack starts at the top of cell[] with sp=N
    safety invariant: hp <= sp<<3 */
-I hp = 0, sp = N;
+static I hp = 0, sp = N;
 
-/* atom, primitive, cons, closure and nil tags for NaN boxing */
-I ATOM = 0x7ff8, PRIM = 0x7ff9, CONS = 0x7ffa, CLOS = 0x7ffb, NIL = 0x7ffc;
+/**
+ * @name Tags for NaN boxing
+ * Atom, primitive, cons, closure and nil
+ * @{ */
+static I ATOM = 0x7ff8, PRIM = 0x7ff9, CONS = 0x7ffa, CLOS = 0x7ffb,
+         NIL = 0x7ffc;
+/** @} */
 
 /* cell[N] array of Lisp expressions, shared by the stack and atom heap */
-L cell[N];
+static L cell[N];
 
 /**
  * @name Lisp constant expressions
@@ -88,7 +93,7 @@ L cell[N];
  * - `err` (returned to indicate errors)
  * - `env` (global enviroment)
  * @{ */
-L nil, tru, err, env;
+static L nil, tru, err, env;
 /** @} */
 
 /*-------------------------------- NaN BOXING --------------------------------*/
@@ -102,7 +107,7 @@ L nil, tru, err, env;
  * @param[in] i Content
  * @return Tagged NaN-boxed double
  */
-L box(I t, I i) {
+static L box(I t, I i) {
     L x;
     *(unsigned long long*)&x = (unsigned long long)t << 48 | i;
     return x;
@@ -117,7 +122,7 @@ L box(I t, I i) {
  *
  * @todo stdint type
  */
-I ord(L x) {
+static I ord(L x) {
     return *(unsigned long long*)&x;
 }
 
@@ -127,7 +132,7 @@ I ord(L x) {
  * @param[in] n NaN-boxed double
  * @return Same as argument
  */
-L num(L n) {
+static L num(L n) {
     return n;
 }
 
@@ -139,29 +144,43 @@ L num(L n) {
  * @param[in] y NaN-boxed expression 2
  * @return Non-zero if they are equal, zero otherwise
  */
-I equ(L x, L y) {
+static I equ(L x, L y) {
     return *(unsigned long long*)&x == *(unsigned long long*)&y;
 }
 
 /*-------------------------------- TODO --------------------------------*/
 
-/* interning of atom names (Lisp symbols), returns a unique NaN-boxed ATOM */
-L atom(const char* s) {
+/**
+ * @brief Get heap index corresponding to the atom name
+ * @details Checks if the atom name already exists on the heap and returns the
+ * index of the corresponding boxed atom.
+ *
+ * If the atom name is new, then additional heap space is allocated to copy the
+ * atom name into the heap as a string.
+ * @param[in] s Atom name (Lisp symbols)
+ * @return Corresponding NaN-boxed ATOM
+ */
+static L atom(const char* s) {
     I i = 0;
-    while (i < hp && strcmp(A + i, s)) /* search for a matching atom name on the
-                                          heap */
+
+    /* Search for a matching atom name on the heap */
+    while (i < hp && strcmp(A + i, s))
         i += strlen(A + i) + 1;
-    if (i == hp) {                          /* if not found */
-        hp += strlen(strcpy(A + i, s)) + 1; /*   allocate and add a new atom
-                                               name to the heap */
-        if (hp > sp << 3)                   /* abort when out of memory */
+
+    /* If not found allocate and add a new atom name to the heap */
+    if (i == hp) {
+        hp += strlen(strcpy(A + i, s)) + 1;
+
+        /* abort when out of memory */
+        if (hp > sp << 3)
             abort();
     }
+
     return box(ATOM, i);
 }
 
 /* construct pair (x . y) returns a NaN-boxed CONS */
-L cons(L x, L y) {
+static L cons(L x, L y) {
     cell[--sp] = x;   /* push the car value x */
     cell[--sp] = y;   /* push the cdr value y */
     if (hp > sp << 3) /* abort when out of memory */
@@ -170,27 +189,27 @@ L cons(L x, L y) {
 }
 
 /* return the car of a pair or ERR if not a pair */
-L car(L p) {
+static L car(L p) {
     return (T(p) & ~(CONS ^ CLOS)) == CONS ? cell[ord(p) + 1] : err;
 }
 
 /* return the cdr of a pair or ERR if not a pair */
-L cdr(L p) {
+static L cdr(L p) {
     return (T(p) & ~(CONS ^ CLOS)) == CONS ? cell[ord(p)] : err;
 }
 
 /* construct a pair to add to environment e, returns the list ((v . x) . e) */
-L pair(L v, L x, L e) {
+static L pair(L v, L x, L e) {
     return cons(cons(v, x), e);
 }
 
 /* construct a closure, returns a NaN-boxed CLOS */
-L closure(L v, L x, L e) {
+static L closure(L v, L x, L e) {
     return box(CLOS, ord(pair(v, x, equ(e, env) ? nil : e)));
 }
 
 /* look up a symbol in an environment, return its value or ERR if not found */
-L assoc(L v, L e) {
+static L assoc(L v, L e) {
     while (T(e) == CONS && !equ(v, car(car(e))))
         e = cdr(e);
     return T(e) == CONS ? cdr(car(e)) : err;
@@ -203,18 +222,19 @@ L assoc(L v, L e) {
  * @param[in] x Expression to check
  * @return Non-zero if NILL, zero if non-nil
  */
-I not(L x) {
+static I not(L x) {
     return T(x) == NIL;
 }
 
 /* let(x) is nonzero if x is a Lisp let/let* pair */
-I let(L x) {
+static I let(L x) {
     return T(x) != NIL && !not(cdr(x));
 }
 
+static L eval(L x, L e);
+
 /* return a new list of evaluated Lisp expressions t in environment e */
-L eval(L, L);
-L evlis(L t, L e) {
+static L evlis(L t, L e) {
     if (T(t) == CONS)
         return cons(eval(car(t), e), evlis(cdr(t), e));
     else if (T(t) == ATOM)
@@ -229,7 +249,6 @@ L evlis(L t, L e) {
  * @name Lisp primitives
  * This functions will be used for the Lisp primitives.
  * @{ */
-
 /*
  *  (eval x)            return evaluated x (such as when x was quoted)
  *  (quote x)           special form, returns x unevaluated "as is"
@@ -429,7 +448,7 @@ struct {
  * @param[in] e Enviroment
  * @return Enviroment with `t` binded to `v`
  */
-L bind(L v, L t, L e) {
+static L bind(L v, L t, L e) {
     if (T(v) == NIL)
         return e;
     else if (T(v) == CONS)
@@ -446,7 +465,7 @@ L bind(L v, L t, L e) {
  * @param[in] e Enviroment
  * @return Applied closure
  */
-L reduce(L f, L t, L e) {
+static L reduce(L f, L t, L e) {
     return eval(cdr(car(f)),
                 bind(car(car(f)), evlis(t, e), not(cdr(f)) ? env : cdr(f)));
 }
@@ -459,7 +478,7 @@ L reduce(L f, L t, L e) {
  * @param[in] e Enviroment
  * @return Applied expression if closure or primitive, `err` otherwise
  */
-L apply(L f, L t, L e) {
+static L apply(L f, L t, L e) {
     if (T(f) == PRIM)
         return prim[ord(f)].f(t, e);
     else if (T(f) == CLOS)
@@ -474,7 +493,7 @@ L apply(L f, L t, L e) {
  * @param[in] e Enviroment of the expression
  * @return Evaluated expression
  */
-L eval(L x, L e) {
+static L eval(L x, L e) {
     if (T(x) == ATOM)
         return assoc(x, e);
     else if (T(x) == CONS)
