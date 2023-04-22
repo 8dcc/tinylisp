@@ -7,7 +7,6 @@
  * Huge credits to Robert for his initial project and amazing documentation. See
  * README.org for more information.
  *
- * @todo Replace types with stdint's
  * @todo Check [in] from args
  * @todo Add (quit) command
  */
@@ -30,7 +29,7 @@
  * `i`       | Any unsigned integer, e.g. a NaN-boxed ordinal value
  * `t`       | A NaN boxing tag
  */
-#define I unsigned
+typedef uint32_t I;
 
 /**
  * @def L
@@ -48,13 +47,13 @@
  * `e`,`d`   | environment, a list of pairs, e.g. created with (define v x)
  * `v`       | the name of a variable (an atom) or a list of variables
  */
-#define L double
+typedef double L;
 
 /**
  * @def T
  * @brief Returns the *tag* bits of a NaN-boxed Lisp expression `x`
  */
-#define T(x) *(unsigned long long*)&x >> 48
+#define T(x) *(uint64_t*)&x >> 48
 
 /**
  * @def A
@@ -109,7 +108,7 @@ static L nil, tru, err, env;
  */
 static L box(I t, I i) {
     L x;
-    *(unsigned long long*)&x = (unsigned long long)t << 48 | i;
+    *(uint64_t*)&x = (uint64_t)t << 48 | i;
     return x;
 }
 
@@ -117,13 +116,16 @@ static L box(I t, I i) {
  * @brief Unbox the unsigned integer (ordinal) of a tagged float
  * @details Tagged floats are created with box(). The return value is narrowed
  * to 32 bit unsigned integer to remove the tag.
+ *
+ * Keep in mind we are casting from a double float (L) to a 64 bit unsigned and
+ * then *returning a 32 bit unsigned* (I).
  * @param[in] x NaN-boxed double (tagged ordinal)
- * @return Unboxed ordinal value from NaN box
+ * @return Unboxed 32 bit ordinal value from NaN box
  *
  * @todo stdint type
  */
 static I ord(L x) {
-    return *(unsigned long long*)&x;
+    return *(uint64_t*)&x;
 }
 
 /**
@@ -145,7 +147,7 @@ static L num(L n) {
  * @return Non-zero if they are equal, zero otherwise
  */
 static I equ(L x, L y) {
-    return *(unsigned long long*)&x == *(unsigned long long*)&y;
+    return *(uint64_t*)&x == *(uint64_t*)&y;
 }
 
 /*-------------------------------- TODO --------------------------------*/
@@ -347,7 +349,7 @@ static L f_div(L t, L e) {
 static L f_int(L t, L e) {
     L n = car(evlis(t, e));
     if (n < 1e16 && n > -1e16)
-        return (long long)n;
+        return (int64_t)n;
     else
         return n;
 }
