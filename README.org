@@ -13,6 +13,11 @@ This project is heavily inspired by [[https://github.com/Robert-van-Engelen/tiny
 [[https://raw.githubusercontent.com/Robert-van-Engelen/tinylisp/main/tinylisp.pdf][his amazing article]]. Please check them out if you are interested in how this
 project was made.
 
+#+begin_quote
+*Note*
+This project is still work in progress.
+#+end_quote
+
 * Building
 
 #+begin_src console

@@ -3,12 +3,12 @@
 
 # Table of Contents
 
-1.  [Description](#orge997858)
-2.  [Building](#org0ad96d4)
-3.  [Usage](#orgece9d34)
+1.  [Description](#org3c380e6)
+2.  [Building](#org3f77e95)
+3.  [Usage](#orgefae8cb)
 
 
-<a id="orge997858"></a>
+<a id="org3c380e6"></a>
 
 # Description
 
@@ -16,8 +16,11 @@ This project is heavily inspired by [Robert-van-Engelen/tinylisp](https://github
 [his amazing article](https://raw.githubusercontent.com/Robert-van-Engelen/tinylisp/main/tinylisp.pdf). Please check them out if you are interested in how this
 project was made.
 
+> **Note**
+> This project is still work in progress.
 
-<a id="org0ad96d4"></a>
+
+<a id="org3f77e95"></a>
 
 # Building
 
@@ -27,7 +30,7 @@ project was made.
     ...
 
 
-<a id="orgece9d34"></a>
+<a id="orgefae8cb"></a>
 
 # Usage
 
