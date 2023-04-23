@@ -140,8 +140,6 @@ static L box(I t, I i) {
  * then *returning a 32 bit unsigned* (I).
  * @param[in] x NaN-boxed double (tagged ordinal)
  * @return Unboxed 32 bit ordinal value from NaN box
- *
- * @todo stdint type
  */
 static I ord(L x) {
     return *(uint64_t*)&x;
