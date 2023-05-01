@@ -145,7 +145,6 @@ static L closure(L v, L x, L e) {
 }
 
 /* look up a symbol in an environment, return its value or ERR if not found */
-/** @todo Use atom name in err_msg() */
 static L assoc(L v, L e) {
     while (T(e) == CONS && !equ(v, car(car(e))))
         e = cdr(e);
@@ -153,7 +152,7 @@ static L assoc(L v, L e) {
     if (T(e) == CONS)
         return cdr(car(e));
     else
-        err_msg("symbol %p not found\n", (void*)(long)ord(v));
+        err_msg("symbol %s not found\n", A + ord(v));
 }
 
 /**
@@ -462,7 +461,7 @@ int main() {
     tru = atom("t");
     env = pair(tru, tru, nil);
 
-    for (i = 0; prim[i].s; ++i)
+    for (i = 0; prim[i].s; i++)
         env = pair(atom(prim[i].s), box(PRIM, i), env);
 
     while (1) {
