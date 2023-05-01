@@ -1,13 +1,12 @@
 /**
- * @file    tinylisp.c
- * @author  8dcc, Robert A. van Engelen
- * @brief   Tiny lisp REPL.
+ * @file      tinylisp.c
+ * @brief     Tiny lisp REPL.
+ * @author    8dcc, Robert A. van Engelen
  *
  * Huge credits to Robert for his initial project and amazing documentation. See
  * README.org for more information.
  *
  * @todo Add comment support (; to eol)
- * @todo Check [in] from args
  */
 
 #include <stdint.h>

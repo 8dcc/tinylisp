@@ -1,3 +1,11 @@
+/**
+ * @file      lisp_primitives.h
+ * @brief     Lisp primitives and table of primitives
+ * @author    8dcc, Robert A. van Engelen
+ *
+ * For descriptions of the primitives, see comment on source.
+ */
+
 #ifndef LISP_PRIMITIVES_H_
 #define LISP_PRIMITIVES_H_ 1
 
@@ -29,6 +37,7 @@
  *        y)            sequentially binds each variable v1 to xi to evaluate y
  *  (lambda v x)        construct a closure
  *  (define v x)        define a named value globally
+ *  (quit)              exit the REPL
  */
 
 /**

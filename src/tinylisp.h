@@ -1,3 +1,15 @@
+/**
+ * @file      tinylisp.h
+ * @brief     Typedefs, macros, globals and function prototypes
+ * @author    8dcc
+ *
+ * Contains function prototypes to avoid forward-declarations and make the
+ * source cleaner.
+ *
+ * Typedefs, macros and globals are needed for the function prototypes/other
+ * headers included in tinylisp.c
+ */
+
 #ifndef TINYLISP_H_
 #define TINYLISP_H_ 1
 
