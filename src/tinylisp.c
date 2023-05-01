@@ -1,4 +1,3 @@
-
 /**
  * @file    tinylisp.c
  * @author  8dcc, Robert A. van Engelen
@@ -23,96 +22,8 @@
  */
 #define VERBOSE_ERRORS
 
-/*------------------------------ MACROS/GLOBALS ------------------------------*/
-
-#ifdef VERBOSE_ERRORS
-#define err_msg(...)                    \
-    {                                   \
-        printf("[err] %s: ", __func__); \
-        printf(__VA_ARGS__);            \
-        return err;                     \
-    }
-#else
-#define err_msg(...) \
-    { return err; }
-#endif
-
-/**
- * @def I
- * @brief Type used for unsigned integers
- * @details Either 16 bit, 32 bit or 64 bit unsigned. Variables and function
- * parameters are named as follows:
- *
- *  Variable | Description
- * ----------|------------------------------------------------------
- * `i`       | Any unsigned integer, e.g. a NaN-boxed ordinal value
- * `t`       | A NaN boxing tag
- */
-typedef uint32_t I;
-
-/**
- * @def L
- * @brief Lisp expression. Will be stored in a double using NaN boxing
- * @details See bellow comments or Robert's article for more information.
- * Variables and function parameters are named as follows:
- *
- *  Variable | Description
- * ----------|--------------------------------------------------------------
- * `x`,`y`   | any Lisp expression
- * `n`       | number
- * `t`       | list
- * `f`       | function or Lisp primitive
- * `p`       | pair, a cons of two Lisp expressions
- * `e`,`d`   | environment, a list of pairs, e.g. created with (define v x)
- * `v`       | the name of a variable (an atom) or a list of variables
- */
-typedef double L;
-
-/**
- * @def T
- * @brief Returns the *tag* bits of a NaN-boxed Lisp expression `x`
- */
-#define T(x) *(uint64_t*)&x >> 48
-
-/**
- * @def A
- * @brief Address of the atom heap is at the bottom of the cell stack
- */
-#define A (char*)cell
-
-/**
- * @def N
- * @brief Number of cells for the shared stack and atom heap
- * @todo Allocate in main and overwrite with arguments
- */
-#define N 1024
-
-/* hp: heap pointer, A+hp with hp=0 points to the first atom string in cell[]
-   sp: stack pointer, the stack starts at the top of cell[] with sp=N
-   safety invariant: hp <= sp<<3 */
-static I hp = 0, sp = N;
-
-/**
- * @name Tags for NaN boxing
- * Atom, primitive, cons, closure and nil
- * @{ */
-static I ATOM = 0x7ff8, PRIM = 0x7ff9, CONS = 0x7ffa, CLOS = 0x7ffb,
-         NIL = 0x7ffc;
-/** @} */
-
-/* cell[N] array of Lisp expressions, shared by the stack and atom heap */
-static L cell[N];
-
-/**
- * @name Lisp constant expressions
- * List:
- * - `nil` (empty list)
- * - `t` (explicit truth)
- * - `err` (returned to indicate errors)
- * - `env` (global enviroment)
- * @{ */
-static L nil, tru, err, env;
-/** @} */
+#include "tinylisp.h" /* Typedefs, macros, globals, function prototypes */
+#include "lisp_primitives.h" /* Lisp primitives, table of primitives */
 
 /*-------------------------------- NaN BOXING --------------------------------*/
 
@@ -261,8 +172,6 @@ static I let(L x) {
     return T(x) != NIL && !not(cdr(x));
 }
 
-static L eval(L x, L e);
-
 /* return a new list of evaluated Lisp expressions t in environment e */
 static L evlis(L t, L e) {
     if (T(t) == CONS)
@@ -272,200 +181,6 @@ static L evlis(L t, L e) {
     else
         return nil;
 }
-
-/*----------------------------- LISP PRIMITIVES ------------------------------*/
-
-/**
- * @name Lisp primitives
- * This functions will be used for the Lisp primitives.
- * @{ */
-/*
- *  (eval x)            return evaluated x (such as when x was quoted)
- *  (quote x)           special form, returns x unevaluated "as is"
- *  (cons x y)          construct pair (x . y)
- *  (car p)             car of pair p
- *  (cdr p)             cdr of pair p
- *  (add n1 n2 ... nk)  sum of n1 to nk
- *  (sub n1 n2 ... nk)  n1 minus sum of n2 to nk
- *  (mul n1 n2 ... nk)  product of n1 to nk
- *  (div n1 n2 ... nk)  n1 divided by the product of n2 to nk
- *  (int n)             integer part of n
- *  (< n1 n2)           #t if n1<n2, otherwise ()
- *  (equ x y)           #t if x equals y, otherwise ()
- *  (not x)             #t if x is (), otherwise ()
- *  (or x1 x2 ... xk)   first x that is not (), otherwise ()
- *  (and x1 x2 ... xk)  last x if all x are not (), otherwise ()
- *  (cond (x1 y1)
- *        (x2 y2)
- *        ...
- *        (xk yk))      the first yi for which xi evaluates to non-()
- *  (if x y z)          if x is non-() then y else z
- *  (let* (v1 x1)
- *        (v2 x2)
- *        ...
- *        y)            sequentially binds each variable v1 to xi to evaluate y
- *  (lambda v x)        construct a closure
- *  (define v x)        define a named value globally
- */
-
-static L f_eval(L t, L e) {
-    return eval(car(evlis(t, e)), e);
-}
-
-static L f_quote(L t, L _) {
-    (void)_;
-    return car(t);
-}
-
-static L f_cons(L t, L e) {
-    t = evlis(t, e);
-    return cons(car(t), car(cdr(t)));
-}
-
-static L f_car(L t, L e) {
-    return car(car(evlis(t, e)));
-}
-
-static L f_cdr(L t, L e) {
-    return cdr(car(evlis(t, e)));
-}
-
-static L f_add(L t, L e) {
-    L n;
-    t = evlis(t, e);
-    n = car(t);
-
-    while (!not(t = cdr(t)))
-        n += car(t);
-
-    return num(n);
-}
-
-static L f_sub(L t, L e) {
-    L n;
-    t = evlis(t, e);
-    n = car(t);
-
-    while (!not(t = cdr(t)))
-        n -= car(t);
-
-    return num(n);
-}
-
-static L f_mul(L t, L e) {
-    L n;
-    t = evlis(t, e);
-    n = car(t);
-
-    while (!not(t = cdr(t)))
-        n *= car(t);
-
-    return num(n);
-}
-
-static L f_div(L t, L e) {
-    L n;
-    t = evlis(t, e);
-    n = car(t);
-
-    while (!not(t = cdr(t)))
-        n /= car(t);
-
-    return num(n);
-}
-
-static L f_int(L t, L e) {
-    L n = car(evlis(t, e));
-    if (n < 1e16 && n > -1e16)
-        return (int64_t)n;
-    else
-        return n;
-}
-
-static L f_lt(L t, L e) {
-    t = evlis(t, e);
-    if (car(t) - car(cdr(t)) < 0)
-        return tru;
-    else
-        return nil;
-}
-
-static L f_eq(L t, L e) {
-    t = evlis(t, e);
-    if (equ(car(t), car(cdr(t))))
-        return tru;
-    else
-        return nil;
-}
-
-static L f_not(L t, L e) {
-    if (not(car(evlis(t, e))))
-        return tru;
-    else
-        return nil;
-}
-
-static L f_or(L t, L e) {
-    L x = nil;
-
-    while (T(t) != NIL && not(x = eval(car(t), e)))
-        t = cdr(t);
-
-    return x;
-}
-
-static L f_and(L t, L e) {
-    L x = nil;
-
-    while (T(t) != NIL && !not(x = eval(car(t), e)))
-        t = cdr(t);
-
-    return x;
-}
-
-static L f_cond(L t, L e) {
-    while (T(t) != NIL && not(eval(car(car(t)), e)))
-        t = cdr(t);
-
-    return eval(car(cdr(car(t))), e);
-}
-
-static L f_if(L t, L e) {
-    return eval(car(cdr(not(eval(car(t), e)) ? cdr(t) : t)), e);
-}
-
-static L f_leta(L t, L e) {
-    for (; let(t); t = cdr(t))
-        e = pair(car(car(t)), eval(car(cdr(car(t))), e), e);
-
-    return eval(car(t), e);
-}
-
-static L f_lambda(L t, L e) {
-    return closure(car(t), car(cdr(t)), e);
-}
-
-static L f_define(L t, L e) {
-    env = pair(car(t), eval(car(cdr(t)), e), env);
-    return car(t);
-}
-/** @} */
-
-/**
- * @struct prim
- * @brief Table of Lisp primitives
- * @details Asociates a name `s` to a function pointer `f`
- */
-struct {
-    const char* s; /**< @brief Primitive name */
-    L (*f)(L, L);  /**< @brief Pointer to primitive function declared above */
-} prim[] = { { "eval", f_eval },     { "quote", f_quote },   { "cons", f_cons },
-             { "car", f_car },       { "cdr", f_cdr },       { "+", f_add },
-             { "-", f_sub },         { "*", f_mul },         { "/", f_div },
-             { "int", f_int },       { "<", f_lt },          { "equ", f_eq },
-             { "or", f_or },         { "and", f_and },       { "not", f_not },
-             { "cond", f_cond },     { "if", f_if },         { "let*", f_leta },
-             { "lambda", f_lambda }, { "define", f_define }, { 0 } };
 
 /*------------------------------- ENVIROMENTS --------------------------------*/
 
@@ -533,16 +248,6 @@ static L eval(L x, L e) {
 }
 
 /*--------------------------------- PARSING ----------------------------------*/
-
-static void look();
-static I seeing(char c);
-static char get();
-static char scan();
-static L read();
-static L list();
-static L quote();
-static L atomic();
-static L parse();
 
 /**
  * @var buf
@@ -684,9 +389,6 @@ static L parse() {
 }
 
 /*--------------------------------- PRINTING ---------------------------------*/
-
-static void print(L x);
-static void printlist(L t);
 
 /**
  * @brief Display a Lisp expression
