@@ -8,7 +8,6 @@
  *
  * @todo Add comment support (; to eol)
  * @todo Check [in] from args
- * @todo Add (quit) command
  */
 
 #include <stdint.h>

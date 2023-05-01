@@ -176,6 +176,14 @@ static L f_define(L t, L e) {
     env = pair(car(t), eval(car(cdr(t)), e), env);
     return car(t);
 }
+
+static L f_quit(L t, L e) {
+    (void)t;
+    (void)e;
+
+    puts("Goodbye!");
+    exit(0);
+}
 /** @} */
 
 /**
@@ -186,12 +194,16 @@ static L f_define(L t, L e) {
 struct {
     const char* s; /**< @brief Primitive name */
     L (*f)(L, L);  /**< @brief Pointer to primitive function declared above */
-} prim[] = { { "eval", f_eval },     { "quote", f_quote },   { "cons", f_cons },
-             { "car", f_car },       { "cdr", f_cdr },       { "+", f_add },
-             { "-", f_sub },         { "*", f_mul },         { "/", f_div },
-             { "int", f_int },       { "<", f_lt },          { "equ", f_eq },
-             { "or", f_or },         { "and", f_and },       { "not", f_not },
-             { "cond", f_cond },     { "if", f_if },         { "let*", f_leta },
-             { "lambda", f_lambda }, { "define", f_define }, { 0 } };
+} prim[] = { { "eval", f_eval },     { "quote", f_quote },
+             { "cons", f_cons },     { "car", f_car },
+             { "cdr", f_cdr },       { "+", f_add },
+             { "-", f_sub },         { "*", f_mul },
+             { "/", f_div },         { "int", f_int },
+             { "<", f_lt },          { "equ", f_eq },
+             { "or", f_or },         { "and", f_and },
+             { "not", f_not },       { "cond", f_cond },
+             { "if", f_if },         { "let*", f_leta },
+             { "lambda", f_lambda }, { "define", f_define },
+             { "quit", f_quit },     { 0 } };
 
 #endif /* LISP_PRIMITIVES_H_ */
