@@ -79,9 +79,11 @@ static I equ(L x, L y) {
 /*-------------------------------- TODO --------------------------------*/
 
 /**
- * @brief Get heap index corresponding to the atom name
- * @details Checks if the atom name already exists on the heap and returns the
- * index of the corresponding boxed atom.
+ * @brief Get heap index corresponding to the atom name, or allocate new
+ * atom-tagged float
+ * @details Checks if the atom name already exists on the heap (by iterating
+ * until the heap pointer) and returns the index of the corresponding boxed
+ * atom.
  *
  * If the atom name is new, then additional heap space is allocated to copy the
  * atom name into the heap as a string.
@@ -91,15 +93,21 @@ static I equ(L x, L y) {
 static L atom(const char* s) {
     I i = 0;
 
-    /* Search for a matching atom name on the heap */
+    /* Search for a matching atom name on the heap.
+     * Compares the string parameter with each element in the heap. We check
+     * until hp (heap pointer) for already existing atoms. If we reach hp, we
+     * allocate a new one. */
     while (i < hp && strcmp(A + i, s))
         i += strlen(A + i) + 1;
 
-    /* If not found allocate and add a new atom name to the heap */
+    /* If not found allocate and add a new atom name to the heap. Otherwise, if
+     * (i != hp), it means we found the atom, so we can skip this part and
+     * return it */
     if (i == hp) {
+        /* Increase the heap pointer by the length of the new string + NULL */
         hp += strlen(strcpy(A + i, s)) + 1;
 
-        /* abort when out of memory */
+        /* Abort when out of memory. (n << 3) => (n * 8) */
         if (hp > sp << 3)
             abort();
     }

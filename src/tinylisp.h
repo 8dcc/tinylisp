@@ -69,6 +69,8 @@ typedef double L;
 /**
  * @def A
  * @brief Address of the atom heap is at the bottom of the cell stack
+ * @details The expression `(A + i)` will be used through the code to access the
+ * `i` offset in the heap.
  */
 #define A (char*)cell
 
@@ -81,10 +83,16 @@ typedef double L;
 
 /*---------------------------------- GLOBALS ---------------------------------*/
 
-/* hp: heap pointer, A+hp with hp=0 points to the first atom string in cell[]
-   sp: stack pointer, the stack starts at the top of cell[] with sp=N
-   safety invariant: hp <= sp<<3 */
+/**
+ * @name Heap and stack pointer
+ * hp: heap pointer. Will be used as an offset in the cell[] array, by adding it
+ * to the bottom of the stack: (A + offset)
+ *
+ * sp: stack pointer. Stack starts at the top of the cell[] array, and its
+ * initial value is N, the size of the array: cell[N]
+ * @{ */
 static I hp = 0, sp = N;
+/** @} */
 
 /**
  * @name Tags for NaN boxing
@@ -94,7 +102,11 @@ static I ATOM = 0x7ff8, PRIM = 0x7ff9, CONS = 0x7ffa, CLOS = 0x7ffb,
          NIL = 0x7ffc;
 /** @} */
 
-/* cell[N] array of Lisp expressions, shared by the stack and atom heap */
+/**
+ * @var cell
+ * @brief Array of Lisp expressions, shared by the stack and atom heap
+ * @details Array of N (1024 by default) tagged floats
+ */
 static L cell[N];
 
 /**
