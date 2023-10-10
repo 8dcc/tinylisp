@@ -1,4 +1,4 @@
-#+title: tinylisp
+#+title: TinyLisp
 #+options: toc:nil
 #+startup: showeverything
 #+export_file_name: ./doc/README.md
@@ -30,6 +30,9 @@ $ make
 * Usage
 
 #+begin_src console
-$ ./tinylisp.out --help
-...
+$ ./tinylisp.out
+--- TinyLisp REPL ---
+[925]> (+ 5 1)
+6
+[925]>
 #+end_src
