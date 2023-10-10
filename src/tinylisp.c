@@ -454,12 +454,9 @@ static void gc() {
  * @details We initialize the predefined atoms (`nil`, `err` and `tru`) and the
  * enviroment (`env`). We add the primitives to the enviroment and start the
  * main loop.
- * @param argc Number of arguments
- * @param argv Vector of string arguments
  * @return Exit code
  */
-int main() {
-    I i;
+int main(void) {
     printf("--- TinyLisp REPL ---");
 
     nil = box(NIL, 0);
@@ -467,7 +464,7 @@ int main() {
     tru = atom("t");
     env = pair(tru, tru, nil);
 
-    for (i = 0; prim[i].s; i++)
+    for (I i = 0; prim[i].s; i++)
         env = pair(atom(prim[i].s), box(PRIM, i), env);
 
     while (1) {
