@@ -47,8 +47,8 @@ static L f_eval(L t, L e) {
     return eval(car(evlis(t, e)), e);
 }
 
-static L f_quote(L t, L _) {
-    (void)_;
+static L f_quote(L t, L e) {
+    (void)e;
     return car(t);
 }
 
@@ -230,7 +230,7 @@ PrimPair prim[] = {
     { "lambda", f_lambda },
     { "define", f_define },
     { "quit",   f_quit },
-    { 0 },
+    { NULL,     NULL },
 };
 
 /* clang-format on */

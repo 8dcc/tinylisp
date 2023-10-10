@@ -49,11 +49,12 @@ typedef double L;
 /*---------------------------------- MACROS ----------------------------------*/
 
 #ifdef VERBOSE_ERRORS
-#define err_msg(...)                    \
-    {                                   \
-        printf("[err] %s: ", __func__); \
-        printf(__VA_ARGS__);            \
-        return err;                     \
+#define err_msg(...)                             \
+    {                                            \
+        fprintf(stderr, "[err] %s: ", __func__); \
+        fprintf(stderr, __VA_ARGS__);            \
+        putc('\n', stderr);                      \
+        return err;                              \
     }
 #else
 #define err_msg(...) \
@@ -69,10 +70,10 @@ typedef double L;
 /**
  * @def A
  * @brief Address of the atom heap is at the bottom of the cell stack
- * @details The expression `(A + i)` will be used through the code to access the
- * `i` offset in the heap.
+ * @details The expression `(HEAP_BOTTOM + i)` will be used through the code to
+ * access the `i` offset in the heap.
  */
-#define A (char*)cell
+#define HEAP_BOTTOM ((char*)cell)
 
 /**
  * @def N
@@ -86,7 +87,7 @@ typedef double L;
 /**
  * @name Heap and stack pointer
  * hp: heap pointer. Will be used as an offset in the cell[] array, by adding it
- * to the bottom of the stack: (A + offset)
+ * to the bottom of the stack: (HEAP_BOTTOM + offset)
  *
  * sp: stack pointer. Stack starts at the top of the cell[] array, and its
  * initial value is N, the size of the array: cell[N]
