@@ -271,7 +271,7 @@ static char see = ' ';
  * character
  * @details Checks for EOF
  */
-static void look() {
+static void look(void) {
     int c = getchar();
     see   = c;
     if (c == EOF)
@@ -297,7 +297,7 @@ static inline I seeing(char c) {
  * next
  * @return Current look ahead character
  */
-static char get() {
+static char get(void) {
     char c = see;
     look();
     return c;
@@ -307,7 +307,7 @@ static char get() {
  * @brief Tokenize input into buf[]
  * @return First character of buf[]
  */
-static char scan() {
+static char scan(void) {
     I i = 0;
 
     while (seeing(' '))
@@ -330,7 +330,7 @@ static char scan() {
  * @details Calls scan() and parse()
  * @return The Lisp expression read from standard input
  */
-static L read() {
+static L read(void) {
     scan();
     return parse();
 }
@@ -340,7 +340,7 @@ static L read() {
  * @details Uses input buffer `buf`
  * @return Parsed Lisp list
  */
-static L list() {
+static L list(void) {
     L x;
     if (scan() == ')')
         return nil;
@@ -360,7 +360,7 @@ static L list() {
  * @details Uses input buffer `buf`
  * @return Parsed quoted expression
  */
-static L quote() {
+static L quote(void) {
     return cons(atom("quote"), cons(read(), nil));
 }
 
@@ -369,7 +369,7 @@ static L quote() {
  * @details Uses input buffer `buf`. An atomic expression is a number or an atom
  * @return Parsed atomic Lisp expression
  */
-static L atomic() {
+static L atomic(void) {
     L n;
     I i;
 
@@ -384,7 +384,7 @@ static L atomic() {
  * @details Uses input buffer `buf`
  * @return Parsed Lisp expression
  */
-static L parse() {
+static L parse(void) {
     if (*buf == '(')
         return list();
     else if (*buf == '\'')
@@ -443,7 +443,7 @@ static void printlist(L t) {
  * @brief Garbage collection
  * @details Removes temporary cells, keeps global environment
  */
-static void gc() {
+static void gc(void) {
     sp = ord(env);
 }
 
