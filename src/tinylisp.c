@@ -143,7 +143,7 @@ static L car(L p) {
     if ((T(p) & ~(CONS ^ CLOS)) == CONS)
         return cell[ord(p) + 1];
     else
-        err_msg("not a pair\n");
+        err_msg("not a pair");
 }
 
 /* return the cdr of a pair or ERR if not a pair */
@@ -151,7 +151,7 @@ static L cdr(L p) {
     if ((T(p) & ~(CONS ^ CLOS)) == CONS)
         return cell[ord(p)];
     else
-        err_msg("not a pair\n");
+        err_msg("not a pair");
 }
 
 /* construct a pair to add to environment e, returns the list ((v . x) . e) */
@@ -172,7 +172,7 @@ static L assoc(L v, L e) {
     if (T(e) == CONS)
         return cdr(car(e));
     else
-        err_msg("symbol %s not found\n", HEAP_BOTTOM + ord(v));
+        err_msg("symbol %s not found", HEAP_BOTTOM + ord(v));
 }
 
 /**
@@ -248,7 +248,7 @@ static L apply(L f, L t, L e) {
     else if (T(f) == CLOS)
         return reduce(f, t, e);
     else
-        err_msg("not a valid clousure or primitive\n");
+        err_msg("not a valid clousure or primitive");
 }
 
 /**
