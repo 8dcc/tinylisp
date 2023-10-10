@@ -90,17 +90,15 @@ typedef double L;
  *
  * sp: stack pointer. Stack starts at the top of the cell[] array, and its
  * initial value is N, the size of the array: cell[N]
- * @{ */
+ */
 static I hp = 0, sp = N;
-/** @} */
 
 /**
  * @name Tags for NaN boxing
  * Atom, primitive, cons, closure and nil
- * @{ */
+ */
 static I ATOM = 0x7ff8, PRIM = 0x7ff9, CONS = 0x7ffa, CLOS = 0x7ffb,
          NIL = 0x7ffc;
-/** @} */
 
 /**
  * @var cell
@@ -116,9 +114,8 @@ static L cell[N];
  * - `t` (explicit truth)
  * - `err` (returned to indicate errors)
  * - `env` (global enviroment)
- * @{ */
+ */
 static L nil, tru, err, env;
-/** @} */
 
 /*--------------------------------- FUNCTIONS --------------------------------*/
 

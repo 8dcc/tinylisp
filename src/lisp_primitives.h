@@ -10,6 +10,9 @@
 #define LISP_PRIMITIVES_H_ 1
 
 /*
+ * Lisp primitives
+ * This functions will be used for the Lisp primitives.
+ *
  * Descriptions:
  *  (eval x)            return evaluated x (such as when x was quoted)
  *  (quote x)           special form, returns x unevaluated "as is"
@@ -40,10 +43,6 @@
  *  (quit)              exit the REPL
  */
 
-/**
- * @name Lisp primitives
- * This functions will be used for the Lisp primitives.
- * @{ */
 static L f_eval(L t, L e) {
     return eval(car(evlis(t, e)), e);
 }
@@ -193,26 +192,47 @@ static L f_quit(L t, L e) {
     puts("Goodbye!");
     exit(0);
 }
-/** @} */
 
 /**
- * @struct prim
- * @brief Table of Lisp primitives
+ * @struct PrimPair
  * @details Asociates a name `s` to a function pointer `f`
  */
-struct {
-    const char* s; /**< @brief Primitive name */
-    L (*f)(L, L);  /**< @brief Pointer to primitive function declared above */
-} prim[] = { { "eval", f_eval },     { "quote", f_quote },
-             { "cons", f_cons },     { "car", f_car },
-             { "cdr", f_cdr },       { "+", f_add },
-             { "-", f_sub },         { "*", f_mul },
-             { "/", f_div },         { "int", f_int },
-             { "<", f_lt },          { "equ", f_eq },
-             { "or", f_or },         { "and", f_and },
-             { "not", f_not },       { "cond", f_cond },
-             { "if", f_if },         { "let*", f_leta },
-             { "lambda", f_lambda }, { "define", f_define },
-             { "quit", f_quit },     { 0 } };
+typedef struct {
+    const char* s; /* Primitive name */
+    L (*f)(L, L);  /* Pointer to primitive function declared above */
+} PrimPair;
+
+/* clang-format off */
+
+/**
+ * @var prim
+ * @brief Table of Lisp primitives
+ */
+PrimPair prim[] = {
+    { "eval",   f_eval },
+    { "quote",  f_quote },
+    { "cons",   f_cons },
+    { "car",    f_car },
+    { "cdr",    f_cdr },
+    { "+",      f_add },
+    { "-",      f_sub },
+    { "*",      f_mul },
+    { "/",      f_div },
+    { "int",    f_int },
+    { "<",      f_lt },
+    { "equ",    f_eq },
+    { "or",     f_or },
+    { "and",    f_and },
+    { "not",    f_not },
+    { "cond",   f_cond },
+    { "if",     f_if },
+    { "let*",   f_leta },
+    { "lambda", f_lambda },
+    { "define", f_define },
+    { "quit",   f_quit },
+    { 0 },
+};
+
+/* clang-format on */
 
 #endif /* LISP_PRIMITIVES_H_ */
