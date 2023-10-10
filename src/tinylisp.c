@@ -97,19 +97,33 @@ static L atom(const char* s) {
      * Compares the string parameter with each element in the heap. We check
      * until hp (heap pointer) for already existing atoms. If we reach hp, we
      * allocate a new one. */
-    while (i < hp && strcmp(A + i, s))
-        i += strlen(A + i) + 1;
+    while (i < hp) {
+        /* cell[i] */
+        char* cur_str = HEAP_BOTTOM + i;
+
+        /* Found string */
+        if (strcmp(cur_str, s) == 0)
+            break;
+
+        /* Skip length of string we just checked + NULL terminator */
+        i += strlen(cur_str) + 1;
+    }
 
     /* If not found allocate and add a new atom name to the heap. Otherwise, if
      * (i != hp), it means we found the atom, so we can skip this part and
      * return it */
     if (i == hp) {
-        /* Increase the heap pointer by the length of the new string + NULL */
-        hp += strlen(strcpy(A + i, s)) + 1;
+        /* Copy the new atom name to the heap */
+        strcpy(HEAP_BOTTOM + i, s);
 
-        /* Abort when out of memory. (n << 3) => (n * 8) */
-        if (hp > sp << 3)
+        /* Increase the heap pointer by the length of the new string + NULL */
+        hp += strlen(HEAP_BOTTOM + i) + 1;
+
+        /* Abort when out of memory */
+        if (hp > sp * sizeof(L)) {
+            fprintf(stderr, "Ran out of heap space.\n");
             abort();
+        }
     }
 
     return box(ATOM, i);
@@ -158,7 +172,7 @@ static L assoc(L v, L e) {
     if (T(e) == CONS)
         return cdr(car(e));
     else
-        err_msg("symbol %s not found\n", A + ord(v));
+        err_msg("symbol %s not found\n", HEAP_BOTTOM + ord(v));
 }
 
 /**
@@ -405,7 +419,7 @@ static void print(L x) {
     if (T(x) == NIL)
         printf("()");
     else if (T(x) == ATOM)
-        printf("%s", A + ord(x));
+        printf("%s", HEAP_BOTTOM + ord(x));
     else if (T(x) == PRIM)
         printf("<%s>", prim[ord(x)].s);
     else if (T(x) == CONS)
@@ -464,7 +478,7 @@ int main(void) {
     tru = atom("t");
     env = pair(tru, tru, nil);
 
-    for (I i = 0; prim[i].s; i++)
+    for (I i = 0; prim[i].s != NULL; i++)
         env = pair(atom(prim[i].s), box(PRIM, i), env);
 
     while (1) {
